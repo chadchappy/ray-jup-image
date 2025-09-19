@@ -1,0 +1,42 @@
+name: Build and Push Docker image
+
+on:
+  push:
+    branches: ["main"]   # Change if you use another default branch
+    paths:
+      - 'Dockerfile'
+      - '.github/workflows/docker-publish.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Extract Git commit SHA
+        id: vars
+        run: echo "sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t ghcr.io/${{ github.repository_owner }}/ray-llm-jupyter:latest \
+            -t ghcr.io/${{ github.repository_owner }}/ray-llm-jupyter:${{ steps.vars.outputs.sha }} .
+
+      - name: Push Docker images
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/ray-llm-jupyter:latest
+          docker push ghcr.io/${{ github.repository_owner }}/ray-llm-jupyter:${{ steps.vars.outputs.sha }}
