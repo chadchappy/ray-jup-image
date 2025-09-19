@@ -2,7 +2,7 @@ name: Build and Push Docker image
 
 on:
   push:
-    branches: ["main"]   # Change if you use another default branch
+    branches: ["main"]
     paths:
       - 'Dockerfile'
       - '.github/workflows/docker-publish.yml'
@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      packages: write
+      packages: write    # ✅ allows pushing to GHCR
       contents: read
 
     steps:
@@ -24,7 +24,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}   # ✅ built-in token
 
       - name: Extract Git commit SHA
         id: vars
